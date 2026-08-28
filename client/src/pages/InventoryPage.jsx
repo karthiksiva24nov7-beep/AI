@@ -102,7 +102,9 @@ export default function InventoryPage() {
             </thead>
             <tbody className="divide-y divide-slate-800/60 font-mono">
               {filtered.map((p) => {
-                const isLow = p.stockQuantity <= p.minStock;
+                const minThreshold = p.minThreshold ?? p.minStock ?? 5;
+                const isLow = (p.stockQuantity ?? 0) <= minThreshold;
+                const displayPrice = p.price ?? p.sellingPrice ?? 0;
                 return (
                   <tr key={p.productId} className="hover:bg-slate-900/60 transition-colors">
                     <td className="py-3.5 px-4">
@@ -114,11 +116,11 @@ export default function InventoryPage() {
                     <td className="py-3.5 px-4 text-slate-300 font-sans text-xs">{p.category}</td>
                     <td className="py-3.5 px-4">
                       <span className={`font-bold ${isLow ? 'text-amber-400' : 'text-emerald-400'}`}>
-                        {p.stockQuantity} units
+                        {p.stockQuantity ?? 0} units
                       </span>
                     </td>
-                    <td className="py-3.5 px-4 text-slate-400">{p.minStock}</td>
-                    <td className="py-3.5 px-4 font-bold text-slate-200">₹{p.sellingPrice.toLocaleString()}</td>
+                    <td className="py-3.5 px-4 text-slate-400">{minThreshold}</td>
+                    <td className="py-3.5 px-4 font-bold text-slate-200">₹{displayPrice.toLocaleString()}</td>
                     <td className="py-3.5 px-4 text-right font-sans">
                       {adjustingId === p.productId ? (
                         <div className="flex items-center justify-end gap-1.5">
