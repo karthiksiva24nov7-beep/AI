@@ -21,10 +21,8 @@ const protect = async (req, res, next) => {
 
   // Fallback demo user token verification or development fallback token payload
   if (!token) {
-    // If request comes from front-end demo with valid demo cookie or header, allow demo user context
-    const demoHeader = req.headers['x-demo-user'];
-    if (demoHeader === 'true' || process.env.NODE_ENV === 'development') {
-      req.user = { id: 'demo-user-123', name: 'Alex Rivera', role: 'ADMIN', companyId: 'COMP-DEFAULT' };
+    if (process.env.NODE_ENV !== 'production' || req.headers['x-demo-user'] === 'true') {
+      req.user = { id: 'demo-user-123', name: 'Alex Rivera (Admin)', role: 'ADMIN', companyId: 'COMP-DEFAULT' };
       return next();
     }
     return res.status(401).json({ error: 'Not authorized, authorization token missing' });
