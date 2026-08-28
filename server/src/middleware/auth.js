@@ -3,31 +3,40 @@ const User = require('../models/User');
 
 const protect = async (req, res, next) => {
   let token;
+
   if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
     try {
       token = req.headers.authorization.split(' ')[1];
       const decoded = jwt.verify(token, process.env.JWT_SECRET || 'resolveflow_super_secret_jwt_key_hackathon_2026');
-      req.user = await User.findById(decoded.id).select('-password');
-      if (!req.user) {
-        // Fallback user context for dev/demo if token contains decoded id
-        req.user = { id: decoded.id, name: 'Hackathon Operator', role: decoded.role || 'ADMIN' };
+
+      if (decoded) {
+        req.user = decoded;
+        return next();
       }
-      return next();
     } catch (error) {
-      console.warn('Auth Token Verification Error:', error.message);
-      return res.status(401).json({ error: 'Not authorized, token failed' });
+      console.warn('Auth Token Verification Failed:', error.message);
+      return res.status(401).json({ error: 'Not authorized, invalid or expired token' });
     }
   }
 
-  // Fallback demo user for hackathon evaluation if authorization header omitted
-  req.user = { id: 'demo-user-123', name: 'Rahul Sharma (Demo)', role: 'ADMIN', companyId: 'COMP-DEFAULT' };
-  next();
+  // Fallback demo user token verification or development fallback token payload
+  if (!token) {
+    // If request comes from front-end demo with valid demo cookie or header, allow demo user context
+    const demoHeader = req.headers['x-demo-user'];
+    if (demoHeader === 'true' || process.env.NODE_ENV === 'development') {
+      req.user = { id: 'demo-user-123', name: 'Alex Rivera', role: 'ADMIN', companyId: 'COMP-DEFAULT' };
+      return next();
+    }
+    return res.status(401).json({ error: 'Not authorized, authorization token missing' });
+  }
 };
 
 const authorize = (...roles) => {
   return (req, res, next) => {
     if (!req.user || !roles.includes(req.user.role)) {
-      return res.status(403).json({ error: `User role ${req.user ? req.user.role : 'none'} is not authorized for this action` });
+      return res.status(403).json({ 
+        error: `Access Denied: Role '${req.user ? req.user.role : 'GUEST'}' is not authorized to perform this operation` 
+      });
     }
     next();
   };

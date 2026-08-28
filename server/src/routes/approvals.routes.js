@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Approval = require('../models/Approval');
 const agentOrchestrator = require('../services/orchestrator/AgentOrchestrator');
-const { protect } = require('../middleware/auth');
+const { protect, authorize } = require('../middleware/auth');
 const { getIsConnected } = require('../config/db');
 const { memoryStore } = require('../services/tools/ToolRegistry');
 
@@ -52,7 +52,7 @@ router.get('/', protect, async (req, res) => {
 });
 
 // Approve high risk action
-router.post('/:id/approve', protect, async (req, res) => {
+router.post('/:id/approve', protect, authorize('ADMIN', 'MANAGER'), async (req, res) => {
   try {
     const { id } = req.params;
     const { comments } = req.body;
@@ -101,7 +101,7 @@ router.post('/:id/approve', protect, async (req, res) => {
 });
 
 // Reject high risk action
-router.post('/:id/reject', protect, async (req, res) => {
+router.post('/:id/reject', protect, authorize('ADMIN', 'MANAGER'), async (req, res) => {
   try {
     const { id } = req.params;
     const { comments } = req.body;
