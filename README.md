@@ -104,12 +104,56 @@ AI PROJECT/
 
 ---
 
-## 🔒 Security & Deployment
+## 🚀 Manual Production Deployment Guide
 
-- **Environment Variables**: Managed via `.env` (Never expose secrets to client).
-- **Frontend Hosting**: Vercel / Netlify
-- **Backend Hosting**: Render / Railway
-- **Database**: MongoDB Atlas
+### 1. 🍃 Database Setup (MongoDB Atlas)
+1. Log into [MongoDB Atlas](https://www.mongodb.com/cloud/atlas).
+2. Create a Cluster and generate a Database User (e.g. `dbuser` / password).
+3. Under **Network Access**, add `0.0.0.0/0` to allow connection from Render.
+4. Copy your MongoDB Atlas connection string:
+   `mongodb+srv://<username>:<password>@cluster0.xxx.mongodb.net/resolveflow_db?retryWrites=true&w=majority`
+
+---
+
+### 2. ⚙️ Backend Server Deployment (Render.com)
+1. Log into [Render](https://render.com) and click **New + $\rightarrow$ Web Service**.
+2. Connect your GitHub repository: `https://github.com/karthiksiva24nov7-beep/AI.git`.
+3. Configure Service Settings:
+   - **Root Directory**: `server`
+   - **Environment**: `Node`
+   - **Build Command**: `npm install`
+   - **Start Command**: `npm start`
+4. Add **Environment Variables** in Render Dashboard:
+   - `PORT` = `5000` (Render assigns PORT automatically as well)
+   - `MONGODB_URI` = `<Your MongoDB Atlas Connection String>`
+   - `JWT_SECRET` = `<Your Random Secure Secret Key>`
+   - `GEMINI_API_KEY` = `<Your Gemini API Key>` (Optional: Falls back to deterministic engine if unconfigured)
+   - `CLIENT_URL` = `https://YOUR-FRONTEND.vercel.app`
+   - `NODE_ENV` = `production`
+5. Click **Deploy Web Service**. Once deployed, copy your Render URL:
+   `https://YOUR-RENDER-BACKEND.onrender.com`
+
+---
+
+### 3. 🌐 Frontend Application Deployment (Vercel)
+1. Log into [Vercel](https://vercel.com) and click **Add New Project**.
+2. Select repository: `karthiksiva24nov7-beep/AI`.
+3. Configure Project Settings:
+   - **Framework Preset**: `Vite`
+   - **Root Directory**: `client`
+   - **Build Command**: `npm run build`
+   - **Output Directory**: `dist`
+4. Add **Environment Variable** in Vercel Dashboard:
+   - `VITE_API_URL` = `https://YOUR-RENDER-BACKEND.onrender.com`
+5. Click **Deploy**. Vercel will build the frontend and serve it with client-side SPA routing (`vercel.json`).
+
+---
+
+### 🔄 Recommended Deployment Order:
+1. **MongoDB Atlas** (Obtain URI)
+2. **Render Backend** (Deploy server & copy backend URL)
+3. **Vercel Frontend** (Deploy frontend with `VITE_API_URL` pointing to Render URL)
+4. **Update Render `CLIENT_URL`** (Set Render `CLIENT_URL` to Vercel production domain)
 
 ---
 

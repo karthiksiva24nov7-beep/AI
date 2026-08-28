@@ -191,29 +191,34 @@ const seedData = async () => {
       }
     ];
 
-    // Populate Mongo if connected
+    // Populate Mongo if connected (only if database is empty or explicit seed command)
     if (connected) {
       try {
-        await Company.deleteMany({});
-        await User.deleteMany({});
-        await Customer.deleteMany({});
-        await Order.deleteMany({});
-        await Payment.deleteMany({});
-        await Shipment.deleteMany({});
-        await Inventory.deleteMany({});
-        await Policy.deleteMany({});
-        await Incident.deleteMany({});
+        const existingCount = await Company.countDocuments();
+        if (existingCount === 0 || process.argv.includes('--force')) {
+          await Company.deleteMany({});
+          await User.deleteMany({});
+          await Customer.deleteMany({});
+          await Order.deleteMany({});
+          await Payment.deleteMany({});
+          await Shipment.deleteMany({});
+          await Inventory.deleteMany({});
+          await Policy.deleteMany({});
+          await Incident.deleteMany({});
 
-        await Company.create(company);
-        await User.create(adminUser);
-        await Customer.insertMany(customers);
-        await Order.insertMany(orders);
-        await Payment.insertMany(payments);
-        await Shipment.insertMany(shipments);
-        await Inventory.insertMany(inventoryItems);
-        await Policy.insertMany(policies);
-        await Incident.insertMany(incidents);
-        console.log('Seed: Database successfully populated in MongoDB!');
+          await Company.create(company);
+          await User.create(adminUser);
+          await Customer.insertMany(customers);
+          await Order.insertMany(orders);
+          await Payment.insertMany(payments);
+          await Shipment.insertMany(shipments);
+          await Inventory.insertMany(inventoryItems);
+          await Policy.insertMany(policies);
+          await Incident.insertMany(incidents);
+          console.log('Seed: Initial demo dataset populated in MongoDB Atlas!');
+        } else {
+          console.log('Seed Notice: Database already populated in MongoDB. Preserving existing production data.');
+        }
       } catch (e) {
         console.warn('Seed Mongo Insert Error:', e.message);
       }

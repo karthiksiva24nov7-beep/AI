@@ -201,23 +201,28 @@ const seedShopPilotData = async () => {
     }
   ];
 
-  // Populate Mongoose if connected
+  // Populate Mongoose if connected (only if database is empty or explicit seed command)
   if (getIsConnected()) {
     try {
-      await Business.deleteMany({});
-      await Product.deleteMany({});
-      await Customer.deleteMany({});
-      await Supplier.deleteMany({});
-      await Order.deleteMany({});
-      await Task.deleteMany({});
+      const prodCount = await Product.countDocuments();
+      if (prodCount === 0 || process.argv.includes('--force')) {
+        await Business.deleteMany({});
+        await Product.deleteMany({});
+        await Customer.deleteMany({});
+        await Supplier.deleteMany({});
+        await Order.deleteMany({});
+        await Task.deleteMany({});
 
-      await Business.create(businessData);
-      await Product.insertMany(products);
-      await Customer.insertMany(customers);
-      await Supplier.insertMany(suppliers);
-      await Order.insertMany(orders);
-      await Task.insertMany(tasks);
-      console.log('[ShopPilotSeed] MongoDB Seeded Successfully!');
+        await Business.create(businessData);
+        await Product.insertMany(products);
+        await Customer.insertMany(customers);
+        await Supplier.insertMany(suppliers);
+        await Order.insertMany(orders);
+        await Task.insertMany(tasks);
+        console.log('[ShopPilotSeed] Initial SME catalog seeded into MongoDB Atlas!');
+      } else {
+        console.log('[ShopPilotSeed] Preserving existing MongoDB SME business data.');
+      }
     } catch (e) {
       console.warn('[ShopPilotSeed] MongoDB seed warning:', e.message);
     }
